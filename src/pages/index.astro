@@ -1,0 +1,167 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { site } from '../data/site';
+const tel = site.phone.replace(/\s/g, '');
+const year = new Date().getFullYear();
+---
+<Layout title={`${site.brand} – Ménage à domicile à ${site.zone.split(' et ')[0]}`} description={site.intro}>
+  <header class="top">
+    <a class="logo" href="#top">{site.brand}</a>
+    <nav aria-label="Navigation principale">
+      <a href="#apropos">À propos</a>
+      <a href="#services">Services</a>
+      <a href="#zone">Zone</a>
+      <a href="#avis">Avis</a>
+      <a class="btn btn-small" href="#contact">Devis gratuit</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <div>
+        <h1>{site.tagline}</h1>
+        <p class="lead">{site.intro}</p>
+        <div class="actions">
+          <a class="btn" href="#contact">Demander un devis gratuit</a>
+          <a class="btn btn-ghost" href={`tel:${tel}`}>Appeler le {site.phone}</a>
+        </div>
+        <p class="note">
+          {site.zone}<br />
+          {site.hours}
+        </p>
+      </div>
+      <ul class="checklist" aria-label="Ce que comprend un passage">
+        {site.checklist.map((item) => <li>{item}</li>)}
+      </ul>
+    </section>
+
+    <section id="apropos" class="section wrap split">
+      <h2>Qui est derrière {site.brand} ?</h2>
+      <div class="prose">
+        {site.about.map((p) => <p>{p}</p>)}
+        <p class="sign">{site.owner}</p>
+      </div>
+    </section>
+
+    <section id="services" class="section band">
+      <div class="wrap">
+        <h2>Ce que je fais chez vous</h2>
+        <div class="grid">
+          {site.services.map((s) => (
+            <article class="service">
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="zone" class="section wrap split">
+      <h2>Où j'interviens</h2>
+      <div class="prose">
+        <p>
+          Basée à {site.city}, je me déplace en voiture chez vous
+          à moins de 25 minutes. Ménage, nettoyage, repassage et aide ménagère à :
+        </p>
+        <ul class="communes">
+          {site.areaServed.map((c) => <li>{c}</li>)}
+        </ul>
+        <p>Votre commune n'est pas dans la liste ? <a href="#contact">Écrivez-moi</a>, on regarde ensemble.</p>
+      </div>
+    </section>
+
+    <section id="deroulement" class="section wrap">
+      <h2>Comment ça se passe</h2>
+      <ol class="steps">
+        {site.steps.map((s) => (
+          <li>
+            <h3>{s.title}</h3>
+            <p>{s.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section id="avis" class="section band">
+      <div class="wrap">
+        <h2>Ils me font confiance</h2>
+        <div class="grid three">
+          {site.testimonials.map((t) => (
+            <figure class="quote">
+              <blockquote>{t.text}</blockquote>
+              <figcaption>{t.name}, {t.place}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section wrap contact">
+      <div>
+        <h2>Parlons de votre intérieur</h2>
+        <p class="lead">Décrivez-moi votre besoin, je vous réponds sous 24 h avec un devis gratuit et sans engagement.</p>
+        <p class="direct">
+          <a href={`tel:${tel}`}>{site.phone}</a><br />
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+        </p>
+      </div>
+
+      <form id="contact-form" action={site.formAction} method="POST">
+        <label>Nom<input name="nom" required autocomplete="name" /></label>
+        <label>Téléphone ou e-mail<input name="contact" required autocomplete="email" /></label>
+        <label>Service souhaité
+          <select name="service">
+            {site.services.map((s) => <option>{s.title}</option>)}
+            <option>Autre</option>
+          </select>
+        </label>
+        <label>Votre message<textarea name="message" rows="4" required></textarea></label>
+        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true" />
+        <label class="check"><input type="checkbox" required /> J'accepte que mes données servent uniquement à répondre à ma demande.</label>
+        <button class="btn" type="submit">Envoyer ma demande</button>
+        <p id="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap foot">
+      <div>
+        <strong>{site.brand}</strong>
+        <p>{site.owner} · {site.legal.status}</p>
+        <p>SIRET : {site.legal.siret}</p>
+        <p>{site.legal.address}</p>
+      </div>
+      <div>
+        <p>{site.legal.tva}</p>
+        <p>{site.legal.insurance}</p>
+        <p>© {year} {site.brand}. Données personnelles utilisées uniquement pour répondre à vos demandes.</p>
+      </div>
+    </div>
+  </footer>
+
+  <a class="sticky-cta" href={`tel:${tel}`} aria-label={`Appeler le ${site.phone}`}>Appeler</a>
+
+  <script>
+    const form = document.getElementById('contact-form') as HTMLFormElement | null;
+    const status = document.getElementById('form-status');
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!status) return;
+      status.textContent = 'Envoi en cours…';
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        if (!res.ok) throw new Error();
+        form.reset();
+        status.textContent = 'Merci ! Votre demande est bien envoyée, je vous réponds sous 24 h.';
+      } catch {
+        status.textContent = "L'envoi a échoué. Vous pouvez m'appeler ou m'écrire directement par e-mail.";
+      }
+    });
+  </script>
+</Layout>
